@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>set_waypoints</name>
+  <name>push_mission</name>
   <version>0.0.0</version>
-  <description>The set_waypoints package</description>
+  <description>The push_mission package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
