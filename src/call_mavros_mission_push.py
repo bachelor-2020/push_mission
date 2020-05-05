@@ -5,7 +5,7 @@ from mavros_msgs.srv import WaypointPush
 from mavros_msgs.msg import Waypoint
 
 
-def mission_push_client(self, start_index, waypoints):
+def mission_push_client(start_index, waypoints):
     rospy.wait_for_service("mavros/mission/push")
 
     try:
@@ -56,25 +56,25 @@ if __name__ == "__main__":
     # float64 z_alt
 
     wp_0 = Waypoint(
-        frame=3, command=22, is_current=True, autocontinue=True, param7=10
+        frame=3, command=22, is_current=True, autocontinue=True, z_alt=10
     )  # Takeoff, 10 meters, make current wp
     wp_1 = Waypoint(
         frame=3,
         command=16,
         is_current=False,
         autocontinue=True,
-        param5=591727301,
-        param6=1029503488,
-        param7=0,
+        x_lat=591727301,
+        y_long=1029503488,
+        z_alt=0,
     )  # Fly to position, keep current altitude
     wp_2 = Waypoint(
         frame=3,
         command=16,
         is_current=False,
         autocontinue=True,
-        param5=592823149,
-        param6=1050352668,
-        param7=0,
+        x_lat=592823149,
+        y_long=1050352668,
+        z_alt=0,
     )  # Fly to position, keep current altitude
     wp_3 = Waypoint(
         frame=3, command=20, is_current=False, autocontinue=True
@@ -84,13 +84,14 @@ if __name__ == "__main__":
         command=21,
         is_current=False,
         autocontinue=True,
-        param5=591727301,
-        param6=1029503488,
-        param7=0,
+        x_lat=591727301,
+        y_long=1029503488,
+        z_alt=0,
     )  # Land at same coordinates as wp_1
     mission_wp = [wp_0, wp_1, wp_2, wp_3, wp_4]
-    mission_request = WaypointPush(start_index=0, waypoints=mission_wp)
-    mission_service_object = mission_push_client(mission_request)
+    mission_service_object = mission_push_client(
+        0, mission_wp
+    )  # Full waypoint update with waypoints in mission_wp
     print("Sent mission to vehicle: ", mission_service_object)
 
 # # WaypointPushService
@@ -105,6 +106,3 @@ if __name__ == "__main__":
 # ---
 # bool success
 # uint32 wp_transfered
-
-
-# Example with takeoff and one waypoint. FRAME_GLOBAL_REL_ALT.
