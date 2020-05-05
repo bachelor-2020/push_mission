@@ -1,0 +1,9 @@
+<launch>
+
+  <node pkg ="push_mission"
+        type="call_mavros_mission_push.py"
+        name="call_mavros_mission_push"
+        output="screen">
+  </node>
+
+</launch>
