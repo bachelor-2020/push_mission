@@ -56,7 +56,13 @@ if __name__ == "__main__":
     # float64 z_alt
 
     wp_0 = Waypoint(
-        frame=3, command=22, is_current=True, autocontinue=True, z_alt=10
+        frame=3,
+        command=22,
+        is_current=True,
+        autocontinue=True,
+        param1=0,
+        param4=0,
+        z_alt=10,
     )  # Takeoff, 10 meters, make current wp
     wp_1 = Waypoint(
         frame=3,
