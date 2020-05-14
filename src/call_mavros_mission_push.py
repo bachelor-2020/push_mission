@@ -3,6 +3,9 @@ from __future__ import print_function
 import rospy
 from mavros_msgs.srv import WaypointPush
 from mavros_msgs.msg import Waypoint
+import requests
+import json
+import time
 
 
 def mission_push_client(start_index, waypoints):
@@ -17,106 +20,57 @@ def mission_push_client(start_index, waypoints):
         print("Service call failed: ", e)
         pass
 
-
-if __name__ == "__main__":
-
-    # # Waypoint.msg
-    #
-    # ROS representation of MAVLink MISSION_ITEM
-    # See mavlink documentation
-
-    # # see enum MAV_FRAME
-    # uint8 frame
-    # uint8 FRAME_GLOBAL = 0
-    # uint8 FRAME_LOCAL_NED = 1
-    # uint8 FRAME_MISSION = 2
-    # uint8 FRAME_GLOBAL_REL_ALT = 3
-    # uint8 FRAME_LOCAL_ENU = 4
-
-    # # see enum MAV_CMD
-    # uint16 command
-    # uint16 NAV_WAYPOINT = 16
-    # uint16 NAV_LOITER_UNLIM = 17
-    # uint16 NAV_LOITER_TURNS = 18
-    # uint16 NAV_LOITER_TIME = 19
-    # uint16 NAV_RETURN_TO_LAUNCH = 20
-    # uint16 NAV_LAND = 21
-    # uint16 NAV_TAKEOFF = 22
-
-    # bool is_current
-    # bool autocontinue
-
-    # # meaning of this params described in enum MAV_CMD
-    # float32 param1
-    # float32 param2
-    # float32 param3
-    # float32 param4
-    # float64 x_lat
-    # float64 y_long
-    # float64 z_alt
-
-    wp_0 = Waypoint(
-        frame=3,
-        command=22,
-        is_current=True,
-        autocontinue=True,
-        param1=0,
-        param4=0,
-        z_alt=10,
+def push_mission(mission):
+    takeoff = Waypoint(
+        frame=3, command=22, is_current=True, autocontinue=True, z_alt=10
     )  # Takeoff, 10 meters, make current wp
-    wp_1 = Waypoint(
-        frame=3,
-        command=16,
-        is_current=False,
-        autocontinue=True,
-        param1=0,
-        param2=0,
-        param3=0,
-        param4=10,
-        x_lat=591727301,
-        y_long=1029503488,
-        z_alt=0,
-    )  # Fly to position, keep current altitude
-    wp_2 = Waypoint(
-        frame=3,
-        command=16,
-        is_current=False,
-        autocontinue=True,
-        param1=0,
-        param2=0,
-        param3=0,
-        param4=10,
-        x_lat=592823149,
-        y_long=1050352668,
-        z_alt=0,
-    )  # Fly to position, keep current altitude
-    wp_3 = Waypoint(
+
+    waypoints = [takeoff]
+
+    for wp in mission:
+        waypoints.append(
+            Waypoint(
+                frame=3,
+                command=16,
+                is_current=False,
+                autocontinue=True,
+                x_lat=wp["latitude"],
+                y_long=wp["longitude"],
+                z_alt=0
+        ))
+
+    return_to_launch = Waypoint(
         frame=3, command=20, is_current=False, autocontinue=True
     )  # Return to launch point
-    wp_4 = Waypoint(
+
+    land = Waypoint(
         frame=3,
         command=21,
         is_current=False,
         autocontinue=True,
-        x_lat=591727301,
-        y_long=1029503488,
+        x_lat=mission[0]["latitude"],
+        y_long=mission[0]["longitude"],
         z_alt=0,
     )  # Land at same coordinates as wp_1
-    mission_wp = [wp_0, wp_1, wp_2, wp_3, wp_4]
+
+    waypoints.append(return_to_launch)
+    waypoints.append(land)
+
     mission_service_object = mission_push_client(
-        0, mission_wp
+        0, waypoints
     )  # Full waypoint update with waypoints in mission_wp
     print("Sent mission to vehicle: ", mission_service_object)
 
-# # WaypointPushService
-# Send waypoints to device
-#
-#  :start_index: will define a partial waypoint update. Set to 0 for full update
-#
-# Returns success status and transfered count
+if __name__ == "__main__":
 
-# uint16 start_index
-# mavros_msgs/Waypoint[] waypoints
-# ---
-# bool success
-# uint32 wp_transfered
+    rospy.init_node('push_mission', anonymous=True)
+
+    mission = json.loads(requests.get("http://app:5000/api/drones/0/area").text)["waypoints"]
+    while 1:
+        last_mission = mission
+        mission = json.loads(requests.get("http://app:5000/api/drones/0/area").text)["waypoints"]
+
+        if len(mission)>0 and mission!=last_mission:
+            print("pushing new mission")
+            push_mission(mission)
+        time.sleep(1)
