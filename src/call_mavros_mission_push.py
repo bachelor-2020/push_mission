@@ -55,15 +55,27 @@ if __name__ == "__main__":
     # float64 y_long
     # float64 z_alt
 
-    wp_0 = Waypoint(
+    vel = Waypoint(
+        frame=3,
+        command=178,
+        is_current=True,
+        autocontinue=True,
+        param1=1,
+        param2=1,
+        param3=-1,
+        param4=0,
+    )  # Setting ground speed to 1 m/s
+
+    take_off = Waypoint(
         frame=3,
         command=22,
-        is_current=True,
+        is_current=False,
         autocontinue=True,
         param1=0,
         param4=0,
         z_alt=10,
     )  # Takeoff, 10 meters, make current wp
+
     wp_1 = Waypoint(
         frame=3,
         command=16,
@@ -73,10 +85,11 @@ if __name__ == "__main__":
         param2=0,
         param3=0,
         param4=10,
-        x_lat=591727301,
-        y_long=1029503488,
+        x_lat=59.1727301,
+        y_long=10.29503488,
         z_alt=0,
     )  # Fly to position, keep current altitude
+
     wp_2 = Waypoint(
         frame=3,
         command=16,
@@ -86,23 +99,26 @@ if __name__ == "__main__":
         param2=0,
         param3=0,
         param4=10,
-        x_lat=592823149,
-        y_long=1050352668,
+        x_lat=59.2823149,
+        y_long=10.50352668,
         z_alt=0,
     )  # Fly to position, keep current altitude
+
     wp_3 = Waypoint(
         frame=3, command=20, is_current=False, autocontinue=True
     )  # Return to launch point
-    wp_4 = Waypoint(
+
+    landing = Waypoint(
         frame=3,
         command=21,
         is_current=False,
         autocontinue=True,
-        x_lat=591727301,
-        y_long=1029503488,
+        x_lat=59.1727301,
+        y_long=10.29503488,
         z_alt=0,
     )  # Land at same coordinates as wp_1
-    mission_wp = [wp_0, wp_1, wp_2, wp_3, wp_4]
+
+    mission_wp = [vel, take_off, wp_1, wp_2, wp_3, landing]
     mission_service_object = mission_push_client(
         0, mission_wp
     )  # Full waypoint update with waypoints in mission_wp
