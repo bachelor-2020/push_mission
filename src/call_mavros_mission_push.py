@@ -20,12 +20,24 @@ def mission_push_client(start_index, waypoints):
         print("Service call failed: ", e)
         pass
 
+
 def push_mission(mission):
+    set_speed = Waypoint(
+        frame=3,
+        command=178,
+        is_current=True,
+        autocontinue=True,
+        param1=1,
+        param2=1,
+        param3=-1,
+        param4=0,
+    )  # Setting ground speed to 1 m/s
+
     takeoff = Waypoint(
         frame=3, command=22, is_current=True, autocontinue=True, z_alt=10
     )  # Takeoff, 10 meters, make current wp
 
-    waypoints = [takeoff]
+    waypoints = [set_speed, takeoff]
 
     for wp in mission:
         waypoints.append(
@@ -36,8 +48,9 @@ def push_mission(mission):
                 autocontinue=True,
                 x_lat=wp["latitude"],
                 y_long=wp["longitude"],
-                z_alt=0
-        ))
+                z_alt=0,
+            )
+        )
 
     return_to_launch = Waypoint(
         frame=3, command=20, is_current=False, autocontinue=True
@@ -61,16 +74,21 @@ def push_mission(mission):
     )  # Full waypoint update with waypoints in mission_wp
     print("Sent mission to vehicle: ", mission_service_object)
 
+
 if __name__ == "__main__":
 
-    rospy.init_node('push_mission', anonymous=True)
+    rospy.init_node("push_mission", anonymous=True)
 
-    mission = json.loads(requests.get("http://app:5000/api/drones/0/area").text)["waypoints"]
+    mission = json.loads(requests.get("http://app:5000/api/drones/0/area").text)[
+        "waypoints"
+    ]
     while 1:
         last_mission = mission
-        mission = json.loads(requests.get("http://app:5000/api/drones/0/area").text)["waypoints"]
+        mission = json.loads(requests.get("http://app:5000/api/drones/0/area").text)[
+            "waypoints"
+        ]
 
-        if len(mission)>0 and mission!=last_mission:
+        if len(mission) > 0 and mission != last_mission:
             print("pushing new mission")
             push_mission(mission)
         time.sleep(1)
